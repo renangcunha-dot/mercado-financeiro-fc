@@ -48,11 +48,13 @@ import SponsorModal from './components/SponsorModal'
 import ClubSelect from './components/ClubSelect'
 import OnboardingModal from './components/OnboardingModal'
 import SaveSlotSelect from './components/SaveSlotSelect'
+import LineupModal from './components/LineupModal'
 
 const PHASES = {
   IDLE: 'idle',
   SPONSOR: 'sponsor',
   FORMATION: 'formation',
+  LINEUP: 'lineup',
   TACTIC: 'tactic',
   INVESTMENT: 'investment',
   EVENT: 'event',
@@ -182,6 +184,11 @@ export default function App() {
 
   function handleChooseFormation(formationId) {
     setState((s) => ({ ...s, formationId }))
+    setPhase(PHASES.LINEUP)
+  }
+
+  function handleChooseLineup(startingXI) {
+    setState((s) => ({ ...s, startingXI }))
     setPhase(PHASES.TACTIC)
   }
 
@@ -351,7 +358,9 @@ export default function App() {
           </div>
         )}
 
-        {tab === 'campo' && <FormationView squad={state.squad} formation={currentFormation} />}
+        {tab === 'campo' && (
+          <FormationView squad={state.squad} formation={currentFormation} startingIds={state.startingXI} />
+        )}
 
         {tab === 'liga' && <LeagueTable leagueTable={leagueTable} financialRanking={financialRanking} />}
 
@@ -391,6 +400,13 @@ export default function App() {
       />
       <SponsorModal open={phase === PHASES.SPONSOR} offers={sponsorOffers} onChoose={handleChooseSponsor} />
       <FormationModal open={phase === PHASES.FORMATION} onChoose={handleChooseFormation} />
+      <LineupModal
+        open={phase === PHASES.LINEUP}
+        squad={state.squad}
+        formation={currentFormation}
+        initialIds={state.startingXI}
+        onConfirm={handleChooseLineup}
+      />
       <TacticModal open={phase === PHASES.TACTIC} onChoose={handleChooseTactic} />
       <InvestmentModal open={phase === PHASES.INVESTMENT} state={state} onChoose={handleChooseInvestment} />
       <EventModal event={phase === PHASES.EVENT ? pendingEvent : null} onChoose={handleChooseEvent} />

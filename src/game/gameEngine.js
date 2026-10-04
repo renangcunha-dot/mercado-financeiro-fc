@@ -4,6 +4,7 @@ import { generateSquad, generateTransferMarket } from './playerGenerator'
 import { initRivals, evolveRivals, resetRivalPointsForNewSeason } from './rivals'
 import { TACTICS } from './tactics'
 import { FORMATIONS } from './formations'
+import { lineupStrengthDelta } from './lineup'
 import { computeFinancialHealth, titleForScore } from './financialHealth'
 import { evaluateAchievements } from './achievements'
 import { sponsorRevenueForRound } from './sponsorship'
@@ -54,6 +55,7 @@ export function createInitialState(clubId) {
     newlyUnlockedBadges: [],
     seenOnboarding: false,
     formationId: '4-4-2',
+    startingXI: [],
     gameOver: false,
   }
 }
@@ -174,7 +176,13 @@ export function simulateRound(state, tacticId = 'equilibrado', formationId = '4-
   const tactic = TACTICS[tacticId] || TACTICS.equilibrado
   const formation = FORMATIONS[formationId] || FORMATIONS['4-4-2']
 
-  const winChance = Math.max(0.05, Math.min(0.85, 0.42 + tactic.winChanceDelta + formation.winChanceDelta))
+  const startingXI = (state.startingXI || []).filter((id) => state.squad.some((p) => p.id === id))
+  const lineupDelta = startingXI.length > 0 ? lineupStrengthDelta(state.squad, formation, startingXI) : 0
+
+  const winChance = Math.max(
+    0.05,
+    Math.min(0.85, 0.42 + tactic.winChanceDelta + formation.winChanceDelta + lineupDelta)
+  )
   const drawChance = 0.25
   const roll = Math.random()
   const outcome = roll < winChance ? 'win' : roll < winChance + drawChance ? 'draw' : 'loss'
@@ -204,10 +212,14 @@ export function simulateRound(state, tacticId = 'equilibrado', formationId = '4-
     }
   })
 
+  // Só quem foi escalado titular corre risco de lesão na rodada; o banco
+  // fica protegido (sem fallback, se não há escalação salva, todo o elenco
+  // entra no sorteio — compatibilidade com saves antigos sem escalação).
   let injuryEvent = null
-  if (updatedSquad.length > 0 && Math.random() < combinedInjuryChance) {
-    const idx = Math.floor(Math.random() * updatedSquad.length)
-    const target = updatedSquad[idx]
+  const injuryPool = startingXI.length > 0 ? updatedSquad.filter((p) => startingXI.includes(p.id)) : updatedSquad
+  if (injuryPool.length > 0 && Math.random() < combinedInjuryChance) {
+    const target = injuryPool[Math.floor(Math.random() * injuryPool.length)]
+    const idx = updatedSquad.findIndex((p) => p.id === target.id)
     const newValue = Math.round(target.marketValue * 0.85)
     updatedSquad = updatedSquad.map((p, i) => (i === idx ? { ...p, marketValue: newValue } : p))
     injuryEvent = { playerName: target.name }
@@ -249,6 +261,7 @@ export function simulateRound(state, tacticId = 'equilibrado', formationId = '4-
     debt: newDebt,
     installments: remainingInstallments,
     squad: updatedSquad,
+    startingXI,
     round: state.round + 1,
     history: [...state.history, entry],
     rivals: evolveRivals(state.rivals, state.points),

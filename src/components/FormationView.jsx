@@ -1,24 +1,7 @@
 import { formatBRL } from '../game/format'
+import { autoBestLineup, buildLineupSlots } from '../game/lineup'
 
 const POSITION_ORDER = ['Goleiro', 'Zagueiro', 'Lateral', 'Meio-campo', 'Atacante']
-
-function pickStartingXI(squad, formationSlots) {
-  const pools = {
-    Goleiro: squad.filter((p) => p.position === 'Goleiro'),
-    Lateral: squad.filter((p) => p.position === 'Lateral'),
-    Zagueiro: squad.filter((p) => p.position === 'Zagueiro'),
-    'Meio-campo': squad.filter((p) => p.position === 'Meio-campo'),
-    Atacante: squad.filter((p) => p.position === 'Atacante'),
-  }
-  const used = new Set()
-  const slots = formationSlots.map((slot) => {
-    const pool = pools[slot.role] || []
-    const player = pool.find((p) => !used.has(p.id))
-    if (player) used.add(player.id)
-    return { ...slot, player: player || null }
-  })
-  return { slots, usedIds: used }
-}
 
 // Gol encostado exatamente na linha de fundo do campo (y=20 topo, y=580 base),
 // sem o vão que existia antes. A rede usa uma hachura mais fina para não
@@ -125,7 +108,7 @@ function StandTexture() {
   return <g>{rows}</g>
 }
 
-export default function FormationView({ squad, formation }) {
+export default function FormationView({ squad, formation, startingIds }) {
   if (squad.length === 0) {
     return (
       <p className="text-chalk/50 text-sm font-body text-center py-10">
@@ -134,7 +117,10 @@ export default function FormationView({ squad, formation }) {
     )
   }
 
-  const { slots: xi, usedIds } = pickStartingXI(squad, formation.slots)
+  const providedIds = (startingIds || []).filter((id) => squad.some((p) => p.id === id))
+  const xiIds = providedIds.length > 0 ? providedIds : autoBestLineup(squad, formation)
+  const xi = buildLineupSlots(squad, formation, xiIds)
+  const usedIds = new Set(xi.filter((s) => s.player).map((s) => s.player.id))
   const bench = squad
     .filter((p) => !usedIds.has(p.id))
     .sort((a, b) => POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position))

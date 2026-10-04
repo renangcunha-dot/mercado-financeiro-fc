@@ -59,6 +59,11 @@ Progresso salvo automaticamente no `localStorage`.
 - **Formação tática** (4-4-2, 4-3-3, 3-5-2...) visualizada como time em
   campo, cada uma com seu próprio trade-off de risco/retorno somado à
   postura tática escolhida.
+- **Escalação tática**: você escolhe os 11 titulares entre os 22 do
+  elenco a cada rodada (ou deixa escalar automaticamente o time mais
+  forte). Só titulares correm risco de lesão; escalar abaixo do melhor
+  time possível reduz a chance de vitória — poupar um titular caro tem
+  custo esportivo real.
 - **3 slots de save independentes**, com migração automática de progresso
   salvo no formato antigo (de antes dos slots existirem).
 - **Onboarding** na primeira partida, explicando a divergência entre
@@ -82,7 +87,8 @@ src/
     playerGenerator.js         # gera elencos de 22 e o mercado internacional
     tactics.js                   # as 3 posturas táticas e seu efeito em risco/retorno
     formations.js                  # formações táticas (4-4-2, 4-3-3, ...): slots em campo + risco/retorno
-    investment.js                    # alocação de orçamento de investimento por rodada
+    lineup.js                        # escalação dos 11 titulares: validação, sugestão automática, efeito em risco/retorno
+    investment.js                      # alocação de orçamento de investimento por rodada
     sponsorship.js                     # propostas de patrocínio por temporada
     bidWar.js                            # geração de lance rival para jogadores disputados
     rivals.js                              # liga de 8 clubes, estilos de gestão, tabela e ranking
@@ -102,7 +108,8 @@ src/
     PlayerCard.jsx                       # cartão de jogador, com nacionalidade e selo de "disputado"
     SponsorModal.jsx                       # escolha de patrocínio no início da temporada
     FormationModal.jsx                       # escolha de formação tática antes da rodada
-    TacticModal.jsx                            # escolha de postura tática antes da rodada
+    LineupModal.jsx                            # escalação dos 11 titulares antes da rodada
+    TacticModal.jsx                              # escolha de postura tática antes da rodada
     InvestmentModal.jsx                          # alocação do orçamento de investimento
     BidWarModal.jsx                                # disputa de lance por jogador "hot"
     FormationView.jsx                                # elenco visualizado como time em campo, por formação
@@ -120,8 +127,6 @@ src/
 
 ## Próximas features a considerar
 
-- **Escalação tática**: escolher os 11 titulares entre os 22 do elenco
-  antes de cada rodada (hoje todos contam igualmente para custo e força).
 - **Empréstimo de jogadores** entre clubes, com opção de compra ao final.
 - **Rubber-banding nos rivais**: ajustar o desempenho deles conforme a
   posição do jogador, mantendo a disputa apertada até o fim.

@@ -52,10 +52,21 @@ Progresso salvo automaticamente no `localStorage`.
 - **7 conquistas**, a maioria premiando comportamento financeiro correto,
   não resultado esportivo.
 - **Loop de decisão em várias camadas por rodada**: patrocínio (só no
-  início da temporada), postura tática, alocação de orçamento de
-  investimento, evento aleatório quando dispara, e disputa de lance por
-  jogadores "disputados" na compra (cobrir à vista, financiar parcelado
-  com juros embutidos, ou desistir).
+  início da temporada), formação tática, postura tática, alocação de
+  orçamento de investimento, evento aleatório quando dispara, e disputa de
+  lance por jogadores "disputados" na compra (cobrir à vista, financiar
+  parcelado com juros embutidos, ou desistir).
+- **Formação tática** (4-4-2, 4-3-3, 3-5-2...) visualizada como time em
+  campo, cada uma com seu próprio trade-off de risco/retorno somado à
+  postura tática escolhida.
+- **3 slots de save independentes**, com migração automática de progresso
+  salvo no formato antigo (de antes dos slots existirem).
+- **Onboarding** na primeira partida, explicando a divergência entre
+  resultado esportivo e saúde financeira antes de o jogador começar.
+- **Efeitos sonoros** (vitória, derrota, empate, conquista) gerados via
+  Web Audio API, com opção de mudo persistida.
+- **Cartão de resultado para compartilhar**: gera uma imagem (PNG) com
+  clube, título financeiro e posição, pronta para baixar.
 
 ## Estrutura de arquivos
 
@@ -70,32 +81,41 @@ src/
     gameEngine.js            # toda a lógica: criar jogo a partir do clube, comprar, vender, simular rodada
     playerGenerator.js         # gera elencos de 22 e o mercado internacional
     tactics.js                   # as 3 posturas táticas e seu efeito em risco/retorno
-    investment.js                  # alocação de orçamento de investimento por rodada
-    sponsorship.js                   # propostas de patrocínio por temporada
-    bidWar.js                          # geração de lance rival para jogadores disputados
-    rivals.js                            # liga de 8 clubes, estilos de gestão, tabela e ranking
-    financialHealth.js                     # cálculo do Índice de Saúde Financeira e título
-    achievements.js                          # definição e checagem das 7 conquistas
-    events.js                                  # pool de eventos aleatórios
-    format.js                                    # formatação de moeda em Real (R$)
+    formations.js                  # formações táticas (4-4-2, 4-3-3, ...): slots em campo + risco/retorno
+    investment.js                    # alocação de orçamento de investimento por rodada
+    sponsorship.js                     # propostas de patrocínio por temporada
+    bidWar.js                            # geração de lance rival para jogadores disputados
+    rivals.js                              # liga de 8 clubes, estilos de gestão, tabela e ranking
+    financialHealth.js                       # cálculo do Índice de Saúde Financeira e título
+    achievements.js                            # definição e checagem das 7 conquistas
+    events.js                                    # pool de eventos aleatórios
+    format.js                                      # formatação de moeda em Real (R$)
+    saveSlots.js                                     # persistência em localStorage (3 slots + migração legada)
+    shareCard.js                                       # gera cartão de resultado (PNG) via Canvas API
+    sound.js                                             # efeitos sonoros (Web Audio API) e preferência de mute
   components/
     ClubSelect.jsx           # tela de escolha de clube no início
     ClubCrest.jsx               # escudo gerado em SVG a partir das cores do clube
-    Ticker.jsx                     # caixa, temporada, rodada, escudo, título e pontos
-    PlayerCard.jsx                    # cartão de jogador, com nacionalidade e selo de "disputado"
-    SponsorModal.jsx                     # escolha de patrocínio no início da temporada
-    TacticModal.jsx                         # escolha de postura tática antes da rodada
-    InvestmentModal.jsx                        # alocação do orçamento de investimento
-    BidWarModal.jsx                               # disputa de lance por jogador "hot"
-    FormationView.jsx                                # elenco visualizado como time em campo
-    LeagueTable.jsx                                     # tabela de campeonato + ranking financeiro
-    CashFlowView.jsx                                       # fluxo de caixa detalhado
-    ProfileView.jsx                                           # índice de saúde financeira e conquistas
+    SaveSlotSelect.jsx             # tela inicial: escolher/criar/excluir um dos 3 slots de save
+    OnboardingModal.jsx              # modal de boas-vindas explicando a mecânica na 1ª partida
+    Ticker.jsx                         # caixa, temporada, rodada, escudo, título e pontos
+    PlayerCard.jsx                       # cartão de jogador, com nacionalidade e selo de "disputado"
+    SponsorModal.jsx                       # escolha de patrocínio no início da temporada
+    FormationModal.jsx                       # escolha de formação tática antes da rodada
+    TacticModal.jsx                            # escolha de postura tática antes da rodada
+    InvestmentModal.jsx                          # alocação do orçamento de investimento
+    BidWarModal.jsx                                # disputa de lance por jogador "hot"
+    FormationView.jsx                                # elenco visualizado como time em campo, por formação
+    LeagueTable.jsx                                    # tabela de campeonato + ranking financeiro
+    CashFlowView.jsx                                     # fluxo de caixa detalhado
+    NetWorthChart.jsx                                      # gráfico de evolução do patrimônio (SVG)
+    ProfileView.jsx                                          # índice de saúde financeira e conquistas
+    ShareCardButton.jsx                                        # gera e baixa o cartão de resultado (shareCard.js)
     EventModal.jsx                                               # modal de decisão de evento aleatório
-    ConceptCard.jsx                                                 # modal do glossário vivo
-    RoundSummary.jsx                                                   # extrato ao fim de cada rodada
-    FinalReport.jsx                                                       # extrato final com título e conquistas
-  App.jsx                                                                    # orquestra o fluxo completo
+    ConceptCard.jsx                                                # modal do glossário vivo
+    RoundSummary.jsx                                                 # extrato ao fim de cada rodada
+    FinalReport.jsx                                                    # extrato final com título e conquistas
+  App.jsx                                                                  # orquestra o fluxo completo
 ```
 
 ## Próximas features a considerar
